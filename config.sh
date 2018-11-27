@@ -1,0 +1,5 @@
+export IMAGE_FAMILY="torch-latest-gpu"
+export ZONE="us-west1-b"
+export INSTANCE_NAME="torch-vm"
+export PROJECT="edge-serving"
+export INSTANCE_SPEC="type=nvidia-tesla-v100,count=1"
