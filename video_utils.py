@@ -26,21 +26,19 @@ def get_filepath(scene_number, video_number, frame_number):
     filepath += scene + video + frame 
     return filepath 
 
-
 def read_image_from_ids(scene_number, video_number, frame_number):
     """Read frame given the scene type, the video index within that scene, and frame number."""
     return read_image(get_filepath(scene_number, video_number, frame_number))
 
-
 def get_all_images_for_scene(scene_number):
     numpy_frames = []
     scene_dir = video_dir_name + "/scene" + str(scene_number)
-    for video in os.listdir(scene_number):
-        for frame in os.listdir(video):
-            numpy_frames.append(read_image(frame))
-    return numpy frames 
-
-
+    for video in os.listdir(scene_dir):
+        video_path = os.path.join(scene_dir, video)
+        for frame in os.listdir(video_path):
+            frame_path = os.path.join(video_path, frame)
+            numpy_frames.append(read_image(frame_path))
+    return numpy_frames 
 
 if __name__=="__main__":
 
