@@ -1,5 +1,5 @@
-export IMAGE_FAMILY="torch-latest-gpu"
+export IMAGE_FAMILY="common-cu90"
 export ZONE="us-west1-b"
-export INSTANCE_NAME="torch-vm"
-export PROJECT="edge-serving"
+export INSTANCE_NAME="ankit-optimized-core"
+export PROJECT="formal-platform-162818"
 export INSTANCE_SPEC="type=nvidia-tesla-v100,count=1"
