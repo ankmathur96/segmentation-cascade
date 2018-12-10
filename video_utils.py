@@ -2,8 +2,12 @@
 import numpy as np 
 from PIL import Image 
 import tensorflow as tf 
+import os
 
-video_dir_name = "~/Downloads/project/"
+video_dir_name = "~/Downloads/project"
+
+scenes = [1, 3, 4, 5]
+scene_to_label = {1:0, 3:1, 4:2, 5:3}
 
 def read_image(filename):
     return np.asarray(Image.open(filename))
@@ -11,7 +15,7 @@ def read_image(filename):
 def get_filepath(scene_number, video_number, frame_number):
     """Get filepath to frame corresponding to given scene, video, and frame.
 
-    Example filepath: ""~/Google Drive/Google Photos/project/scene3/scene3_vid3_frames/scene3_vid3_007.jpg"
+    Example filepath: ""~/Downloads/project/scene3/scene3_vid3_frames/scene3_vid3_007.jpg"
 
     """
     filepath = video_dir_name
@@ -23,10 +27,19 @@ def get_filepath(scene_number, video_number, frame_number):
     return filepath 
 
 
-
-def read_image(scene_number, video_number, frame_number):
+def read_image_from_ids(scene_number, video_number, frame_number):
     """Read frame given the scene type, the video index within that scene, and frame number."""
     return read_image(get_filepath(scene_number, video_number, frame_number))
+
+
+def get_all_images_for_scene(scene_number):
+    numpy_frames = []
+    scene_dir = video_dir_name + "/scene" + str(scene_number)
+    for video in os.listdir(scene_number):
+        for frame in os.listdir(video):
+            numpy_frames.append(read_image(frame))
+    return numpy frames 
+
 
 
 if __name__=="__main__":
