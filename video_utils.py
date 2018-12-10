@@ -46,7 +46,7 @@ def get_all_images_for_scene(scene_number, root=video_dir_name, test=False):
 if __name__=="__main__":
 
     # test 
-    get_all_images_for_scene(3, root="~/Google\ Drive/project", test=True)
+    get_all_images_for_scene(3, root="~/Desktop/project", test=True)
 
     
 	
