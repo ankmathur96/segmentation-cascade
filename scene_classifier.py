@@ -1,5 +1,13 @@
 import tensorflow as tf
+import numpy as np 
+from PIL import Image 
 from video_utils import get_all_images_for_scene
+
+
+def jpeg_to_nparray(image_path):
+	image = Image.open(image_path)
+	resized = image.resize((299, 299), Image.BICUBIC)
+	return np.asarray(resized)
 
 
 class SceneClassifier():
@@ -23,7 +31,7 @@ class SceneClassifier():
 
 		self.sess = tf.InteractiveSession()
 		self.saver = tf.train.Saver()
-		self.sess.run(tf.global_variables_initializer())
+		print("Finished model initialization ")
 
 
 	def load_data(self):
@@ -38,48 +46,50 @@ class SceneClassifier():
 
 
 	def forward_prop(self):
-	    inputs = tf.placeholder(tf.float32, (None, 299, 299, 3))
-	    labels = tf.placeholder(tf.int32, (None, self.num_classes))
+	    self.input_images = tf.placeholder(tf.float32, (None, 299, 299, 3))
+	    self.input_labels = tf.placeholder(tf.int32, (None, self.num_classes))
 
-	    conv_outs = tf.layers.conv2d(inputs, 16, kernel_size=5)
+	    conv_outs = tf.layers.conv2d(self.input_images, 16, kernel_size=5)
 	    flattened = tf.contrib.layers.flatten(conv_outs)
 	    fc_outs = tf.layers.dense(flattened, 1024)
 	    fc_final = tf.layers.dense(fc_outs, 4)
 
-	    loss = tf.losses.softmax_cross_entropy(onehot_labels=labels, logits=fc_final)
+	    loss = tf.losses.softmax_cross_entropy(onehot_labels=self.input_labels, logits=fc_final)
 	    return fc_final, loss 
 
 
 	def sample_batch(self):
-		random_indices = np.random.random_integers(self.dataset_size-1, size(self.batch_size,))
-		sampled_image_paths = [self.images[idx] for idx in random_indices]
-		sampled_labels = [self.labels[idx] for idx in random_labels]
+		random_indices = np.random.random_integers(self.dataset_size-1, size=(self.batch_size))
+		sampled_image_paths = [self.image_paths[idx] for idx in random_indices]
+		sampled_labels = [self.labels[idx] for idx in random_indices]
 
-		label_batch = tf.one_hot(sampled_labels, depth=self.num_classes)  # batch_size x num_classes
-		image_batch = tf.zeros(shape=(self.batch_size, 299, 299, 3))
+		label_batch = np.zeros((self.batch_size, self.num_classes))
+		for idx, label in enumerate(sampled_labels):
+			label_batch[idx, sampled_labels[idx]] = 1.0
 
-		for idx, image_path in enumerate(sampled_image_paths):
-			image_string = tf.read_file(image_path)
-			image_decoded = tf.image.decode_jpeg(image_string, channels=3)
-			image_resized = tf.image.resize_images(image_decoded, (299,299))
-			image = tf.cast(image_resized, tf.float32)
-			image_batch[idx, :, :, :] = image 
+		image_batch = np.stack([jpeg_to_nparray(image_path) for image_path in sampled_image_paths])
 
 		return image_batch, label_batch
 
 	def train_model(self):
 		print("Beginning model training ")
+		print("About to run sess ")
+		self.sess.run(tf.global_variables_initializer())
+		print("Initialized variables ")
+		
 		for i in range(self.num_train_steps):
 			if (i % self.print_every == 0):
 				print("Beginning batch ", i)
 
 			image_batch, label_batch = self.sample_batch()
-			self.train_step.run(feed_dict={inputs: image_batch, labels: label_batch})
+			feed_dict = {self.input_images: image_batch, self.input_labels: label_batch}
+			self.train_step.run(feed_dict=feed_dict)
 
 			if (i % self.print_every == 0):
-				print("Loss: ", self.loss.eval(feed_dict={inputs: image_batch, labels: label_batch}))
+				print("Loss: ", self.loss.eval(feed_dict=feed_dict))
 
 
 if __name__=="__main__":
 	model = SceneClassifier()
+	print("Created model ")
 	model.train_model()
