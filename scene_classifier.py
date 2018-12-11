@@ -6,7 +6,8 @@ from video_utils import get_all_images_for_scene
 
 def jpeg_to_nparray(image_path):
 	image = Image.open(image_path)
-	resized = image.resize((299, 299), Image.BICUBIC)
+	resized = image.resize((299, 299), Image.NEAREST)  # Use Image.BICUBIC for higher quality 
+	# but slower resizing
 	return np.asarray(resized)
 
 
