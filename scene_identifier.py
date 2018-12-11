@@ -1,11 +1,13 @@
 import tensorflow as tf
 from video_utils import get_all_images_for_scene
+
 scenes = [1,3,4,5]
 LEARNING_RATE = 1e-4
 MODEL_DIR = 'scene-recog-model/'
-BATCH_SIZE = 4
-TRAIN_EPOCHS = 100
+BATCH_SIZE = 16
+TRAIN_EPOCHS = 50
 scene_to_label = {1:0, 3:1, 4:2, 5:3}
+
 # Input Specification
 def parse_fn(f, l):
     image_string = tf.read_file(f)
@@ -15,20 +17,24 @@ def parse_fn(f, l):
     label = tf.one_hot(l, depth=len(scenes))
     print(label)
     return image, label
-images, labels = [], []
-for scene_idx in scenes:
-    images_from_scene = get_all_images_for_scene(scene_idx)
-    # images_from_scene = map(parse_fn, images_from_scene)
-    images.extend(images_from_scene)
-    labels.extend([scene_to_label[scene_idx] for _ in range(len(images_from_scene))])
-    # sess.run([images])
+
+def load_data():
+	images, labels = [], []
+	for scene_idx in scenes:
+		images_from_scene = get_all_images_for_scene(scene_idx)
+		# images_from_scene = map(parse_fn, images_from_scene)
+		images.extend(images_from_scene)
+		labels.extend([scene_to_label[scene_idx] for _ in range(len(images_from_scene))])
+		# sess.run([images])
+	return images, labels 
+
 def train_input_fn(features, labels, batch_size):
     """An input function for training"""
     # Convert the inputs to a Dataset.
     dataset = tf.data.Dataset.from_tensor_slices((features, labels))
     dataset = dataset.map(parse_fn)
     # Shuffle, repeat, and batch the examples.
-    dataset = dataset.shuffle(1000).repeat().batch(batch_size)
+    dataset = dataset.batch(batch_size).repeat()
 
     # Return the read end of the pipeline.
     return dataset.make_one_shot_iterator().get_next()
@@ -71,14 +77,17 @@ def model_fn(features, labels, mode, params):
         loss = tf.losses.softmax_cross_entropy(labels=labels, logits=logits)
         return tf.estimator.EstimatorSpec(mode=tf.estimator.ModeKeys.EVAL, loss=loss, eval_metric_ops={'accuracy' : tf.metrics.accuracy(labels=labels, predictions=tf.argmax(logits, axis=1))})
 
-def train_detector():
+def train_detector(images, labels):
     scene_classifier = tf.estimator.Estimator(model_fn=model_fn, model_dir=MODEL_DIR)
 
     for i in range(TRAIN_EPOCHS):
         print(i)
         scene_classifier.train(input_fn=lambda: train_input_fn(images, labels, BATCH_SIZE))
-        # eval_results = scene_classifier.evaluate(input_fn=eval_input_fn)
+        eval_results = scene_classifier.evaluate(input_fn=train_input_fn)  # temp
         print('\nEvaluation results:\n\t%s\n' % eval_results)
-train_detector()
+
+if __name__=="__main__":
+	images, labels = load_data()
+	train_detector(images, labels)
     
 # load images
