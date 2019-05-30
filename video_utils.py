@@ -1,7 +1,6 @@
 # video utils 
 import numpy as np 
 from PIL import Image 
-import tensorflow as tf 
 import os
 
 video_dir_name = "/Users/Pranav/Desktop/cs348kproject"
@@ -20,7 +19,7 @@ def get_filepath(scene_number, video_number, frame_number):
     filepath = video_dir_name
     scene = "/scene" + str(scene_number)
     video = scene + "_vid" + str(video_number) + "_frames"
-    frame = scene + "_vid" + str(video_number) + "_" + str(frame_number).zfill(3) + ".jpg"  # note: assumption 
+    frame = scene + "_vid" + str(video_number) + "_" + str(frame_number).zfill(3) + "_small.jpg"  # note: assumption 
     #  here is that all videos have fewer than 100 frames
     filepath += scene + video + frame 
     return filepath 
@@ -41,7 +40,7 @@ def get_all_images_for_scene(scene_number, root=video_dir_name, test=False):
                     if "Icon" not in frame:
                         print(frame_path)
                 else:
-                    if "Icon" not in frame:  # hard coded to avoid certain weird artifact files
+                    if "Icon" not in frame and 'small' in frame:  # hard coded to avoid certain weird artifact files
                         frame_paths.append(frame_path)
     return frame_paths 
 
